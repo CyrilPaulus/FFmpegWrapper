@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AudioWrapper.cs" />
+    <Compile Include="WrapperConfig.cs" />
     <Compile Include="VideoWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

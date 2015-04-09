@@ -76,10 +76,8 @@ namespace FFmpeg.Wrapper
         private double _position;
         
         public void Open(string filename)
-        {            
-            FFmpegInvoke.av_register_all();
-            FFmpegInvoke.avcodec_register_all();
-            
+        {
+            WrapperConfig.Init();            
 
             AVFormatContext* pFormatContext = FFmpegInvoke.avformat_alloc_context();
             _pFormatContext = pFormatContext;

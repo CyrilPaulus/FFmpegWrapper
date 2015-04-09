@@ -31,8 +31,7 @@ namespace FFmpeg.Wrapper
             if (_opened)
                 return;
 
-            FFmpegInvoke.av_register_all();
-            FFmpegInvoke.avcodec_register_all();
+            WrapperConfig.Init();
 
             AVFormatContext* formatContext = FFmpegInvoke.avformat_alloc_context();
             _formatContext = formatContext;
