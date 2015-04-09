@@ -14,8 +14,8 @@ namespace AudioTest
         {
             Console.WriteLine("Starting...");
             var audio = new AudioWrapper();
-            
-            audio.Open(@"E:\UltraStar\songs\Gaetan Roussel - Help myself\Gaetan Roussel - Help myself.mp3");
+
+            audio.Open(@"E:\UltraStar\songs\Arctic Monkeys - Do I Wanna Know\Arctic Monkeys - Do I Wanna Know.mp3");
             Console.WriteLine(audio.Channels);
             Console.WriteLine(audio.Frequency);
 

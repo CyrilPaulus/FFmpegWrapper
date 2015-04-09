@@ -116,6 +116,10 @@ namespace FFmpeg.Wrapper
                 Array.Copy(_leftOvers, _leftOvers.Length - leftOverCount, tmp, 0, leftOverCount);
                 _leftOvers = tmp;
             }
+            else
+            {
+                _leftOvers = new float[0];
+            }
 
             index += cpSize;
             if (index >= buffer.Length)
