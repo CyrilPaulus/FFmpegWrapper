@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFmpeg.Wrapper", "FFmpeg.Wr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioTest", "AudioTest\AudioTest.csproj", "{3A28B0A1-9EE4-474A-8D67-32372D240424}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFMpegVideoTest", "FFMpegVideoTest\FFMpegVideoTest.csproj", "{7CABEFE8-62AE-4B25-8A4E-E55261F607E6}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoPlayer", "VideoPlayer\VideoPlayer.csproj", "{46B204C2-073B-44F4-AD9E-EB8F24177C9F}"
 EndProject
 Global
@@ -25,10 +23,6 @@ Global
 		{3A28B0A1-9EE4-474A-8D67-32372D240424}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A28B0A1-9EE4-474A-8D67-32372D240424}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A28B0A1-9EE4-474A-8D67-32372D240424}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7CABEFE8-62AE-4B25-8A4E-E55261F607E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7CABEFE8-62AE-4B25-8A4E-E55261F607E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7CABEFE8-62AE-4B25-8A4E-E55261F607E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7CABEFE8-62AE-4B25-8A4E-E55261F607E6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{46B204C2-073B-44F4-AD9E-EB8F24177C9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{46B204C2-073B-44F4-AD9E-EB8F24177C9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46B204C2-073B-44F4-AD9E-EB8F24177C9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -36,5 +30,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

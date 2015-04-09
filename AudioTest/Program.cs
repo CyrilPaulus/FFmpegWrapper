@@ -14,13 +14,23 @@ namespace AudioTest
         {
             Console.WriteLine("Starting...");
             var audio = new AudioWrapper();
-            var stream = new MemoryStream();
-            audio.Decode(@"E:\UltraStar\songs\Acdc - Highway To Hell\Acdc - Highway To Hell.mp3", stream);
+            
+            audio.Open(@"E:\UltraStar\songs\Gaetan Roussel - Help myself\Gaetan Roussel - Help myself.mp3");
             Console.WriteLine(audio.Channels);
             Console.WriteLine(audio.Frequency);
-            using(var fs = new FileStream("out", FileMode.Create)) {
-                stream.WriteTo(fs);
+
+            using(var fs = new BinaryWriter(new FileStream("out", FileMode.Create))) {
+                var buffer = new float[1024];
+                while (audio.Read(buffer))
+                {
+                    for (int i = 0; i < buffer.Length; i++)
+                        fs.Write(buffer[i]);
+                }               
+                
             }
+            
+            
+            Console.WriteLine("Finished");
             Console.ReadLine();
         }
     }
