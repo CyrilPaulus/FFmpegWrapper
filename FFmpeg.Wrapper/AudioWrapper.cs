@@ -16,12 +16,12 @@ namespace FFmpeg.Wrapper
         private string _filename;
 
         private AVFormatContext* _formatContext = null;
-        private AVStream* stream = null;
-        private AVFrame* frame = null;
-        private AVFrame* convFrame = null;
-        private SwrContext* swrContext = null;
-        private AVPacket pkt;
-        private float[] leftOvers = new float[0];
+        private AVStream* _stream = null;
+        private AVFrame* _frame = null;
+        private AVFrame* _convFrame = null;
+        private SwrContext* _swrContext = null;
+        private AVPacket _pkt;
+        private float[] _leftOvers = new float[0];
 
         private bool _opened = false;
 
@@ -49,19 +49,19 @@ namespace FFmpeg.Wrapper
             {
                 if (formatContext->streams[i]->codec->codec_type == AVMediaType.AVMEDIA_TYPE_AUDIO)
                 {
-                    stream = formatContext->streams[i];
+                    _stream = formatContext->streams[i];
                     break;
                 }
             }
 
-            if (stream == null)
+            if (_stream == null)
                 throw new Exception("Could not find audio stream");
 
-            var codecContext = stream->codec;
+            var codecContext = _stream->codec;
             Channels = codecContext->channels;
             Frequency = codecContext->sample_rate;
-            double time_base = (double)stream->time_base.num / (double)stream->time_base.den;
-            Samples = (long)((double)stream->duration * time_base * Frequency * Channels);
+            double time_base = (double)_stream->time_base.num / (double)_stream->time_base.den;
+            Samples = (long)((double)_stream->duration * time_base * Frequency * Channels);
 
             var audioCodec = FFmpegInvoke.avcodec_find_decoder(codecContext->codec_id);
 
@@ -70,25 +70,25 @@ namespace FFmpeg.Wrapper
             if (audioCodec == null)
                 throw new Exception("Unsupported audio codec");
 
-            if (FFmpegInvoke.avcodec_open2(stream->codec, audioCodec, null) < 0)
+            if (FFmpegInvoke.avcodec_open2(_stream->codec, audioCodec, null) < 0)
                 throw new Exception("Could not open codec");
 
 
-            frame = FFmpegInvoke.avcodec_alloc_frame();
-            convFrame = FFmpegInvoke.avcodec_alloc_frame();
+            _frame = FFmpegInvoke.avcodec_alloc_frame();
+            _convFrame = FFmpegInvoke.avcodec_alloc_frame();
 
-            FFmpegInvoke.av_frame_set_channel_layout(convFrame, (int)codecContext->channel_layout);
-            FFmpegInvoke.av_frame_set_sample_rate(convFrame, codecContext->sample_rate);
-            FFmpegInvoke.av_frame_set_channels(convFrame, 2);
-            convFrame->format = (int)AVSampleFormat.AV_SAMPLE_FMT_FLT;
-            pkt = new AVPacket();
+            FFmpegInvoke.av_frame_set_channel_layout(_convFrame, (int)codecContext->channel_layout);
+            FFmpegInvoke.av_frame_set_sample_rate(_convFrame, codecContext->sample_rate);
+            FFmpegInvoke.av_frame_set_channels(_convFrame, 2);
+            _convFrame->format = (int)AVSampleFormat.AV_SAMPLE_FMT_FLT;
+            _pkt = new AVPacket();
 
-            fixed (AVPacket* pPacket = &pkt)
+            fixed (AVPacket* pPacket = &_pkt)
             {
                 FFmpegInvoke.av_init_packet(pPacket);
             }
             
-            swrContext = FFmpegInvoke.swr_alloc_set_opts(
+            _swrContext = FFmpegInvoke.swr_alloc_set_opts(
                     null,
                     (long)codecContext->channel_layout,
                     AVSampleFormat.AV_SAMPLE_FMT_FLT,
@@ -108,14 +108,14 @@ namespace FFmpeg.Wrapper
 
             //First should write the leftovers
 
-            var cpSize = Math.Min(buffer.Length, leftOvers.Length);
-            Array.Copy(leftOvers, buffer, cpSize);
-            var leftOverCount = leftOvers.Length - cpSize;
+            var cpSize = Math.Min(buffer.Length, _leftOvers.Length);
+            Array.Copy(_leftOvers, buffer, cpSize);
+            var leftOverCount = _leftOvers.Length - cpSize;
             if (leftOverCount > 0)
             {
                 var tmp = new float[leftOverCount];
-                Array.Copy(leftOvers, leftOvers.Length - leftOverCount, tmp, 0, leftOverCount);
-                leftOvers = tmp;
+                Array.Copy(_leftOvers, _leftOvers.Length - leftOverCount, tmp, 0, leftOverCount);
+                _leftOvers = tmp;
             }
 
             index += cpSize;
@@ -123,38 +123,38 @@ namespace FFmpeg.Wrapper
                 return true;
 
 
-            fixed (AVPacket* pPacket = &pkt)
+            fixed (AVPacket* pPacket = &_pkt)
             while (FFmpegInvoke.av_read_frame(_formatContext, pPacket) == 0)
             {
-                if (pkt.stream_index == stream->index)
+                if (_pkt.stream_index == _stream->index)
                 {
                     int gotFrame = 0;
-                    var rtn = FFmpegInvoke.avcodec_decode_audio4(stream->codec, frame, &gotFrame, pPacket);
+                    var rtn = FFmpegInvoke.avcodec_decode_audio4(_stream->codec, _frame, &gotFrame, pPacket);
 
                     if (gotFrame != 0)
                     {
-                        FFmpegInvoke.av_frame_unref(convFrame);
-                        FFmpegInvoke.av_frame_set_channel_layout(convFrame, (int)stream->codec->channel_layout);
-                        FFmpegInvoke.av_frame_set_sample_rate(convFrame, stream->codec->sample_rate);
-                        FFmpegInvoke.av_frame_set_channels(convFrame, 2);
-                        convFrame->format = (int)AVSampleFormat.AV_SAMPLE_FMT_FLT;
+                        FFmpegInvoke.av_frame_unref(_convFrame);
+                        FFmpegInvoke.av_frame_set_channel_layout(_convFrame, (int)_stream->codec->channel_layout);
+                        FFmpegInvoke.av_frame_set_sample_rate(_convFrame, _stream->codec->sample_rate);
+                        FFmpegInvoke.av_frame_set_channels(_convFrame, 2);
+                        _convFrame->format = (int)AVSampleFormat.AV_SAMPLE_FMT_FLT;
 
 
-                        FFmpegInvoke.swr_convert_frame(swrContext, convFrame, frame);
+                        FFmpegInvoke.swr_convert_frame(_swrContext, _convFrame, _frame);
 
                         //16 bits per sample and two channels
                         int planeSize;
-                        int size = FFmpegInvoke.av_samples_get_buffer_size(&planeSize, 2, convFrame->nb_samples, AVSampleFormat.AV_SAMPLE_FMT_FLT, 1) / sizeof(float);
+                        int size = FFmpegInvoke.av_samples_get_buffer_size(&planeSize, 2, _convFrame->nb_samples, AVSampleFormat.AV_SAMPLE_FMT_FLT, 1) / sizeof(float);
 
                         cpSize = Math.Min(size, buffer.Length - index);
-                        Marshal.Copy(new IntPtr(convFrame->data_0), buffer, index, cpSize);
+                        Marshal.Copy(new IntPtr(_convFrame->data_0), buffer, index, cpSize);
 
                         //Copy leftOvers in a new array
                         leftOverCount = size - cpSize;
                         if (leftOverCount > 0)
                         {
-                            leftOvers = new float[leftOverCount];
-                            Marshal.Copy(new IntPtr(convFrame->data_0 + sizeof(float) * cpSize), leftOvers, 0, leftOverCount);
+                            _leftOvers = new float[leftOverCount];
+                            Marshal.Copy(new IntPtr(_convFrame->data_0 + sizeof(float) * cpSize), _leftOvers, 0, leftOverCount);
                         }
                         index += cpSize;
                         if (index >= buffer.Length)
@@ -177,11 +177,11 @@ namespace FFmpeg.Wrapper
             if (!_opened)
                 return;
 
-            FFmpegInvoke.av_free(frame);
-            FFmpegInvoke.av_free(convFrame);
-            FFmpegInvoke.avcodec_close(stream->codec);
+            FFmpegInvoke.av_free(_frame);
+            FFmpegInvoke.av_free(_convFrame);
+            FFmpegInvoke.avcodec_close(_stream->codec);
             
-            fixed (SwrContext** pSwrContext = &swrContext)
+            fixed (SwrContext** pSwrContext = &_swrContext)
             {
                 FFmpegInvoke.swr_free(pSwrContext);
             }
@@ -192,10 +192,10 @@ namespace FFmpeg.Wrapper
             }
 
             _formatContext = null;
-            stream = null;
-            frame = null;
-            convFrame = null;
-            swrContext = null;
+            _stream = null;
+            _frame = null;
+            _convFrame = null;
+            _swrContext = null;
 
             _opened = false;
         }
